@@ -1,0 +1,3 @@
+model:
+  name: "resnet50"
+  num_classes: 2
