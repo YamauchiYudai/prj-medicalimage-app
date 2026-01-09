@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Upload, FileUp, Activity, AlertCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import {
   BarChart,
   Bar,
@@ -10,10 +9,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import Header from '@/components/Header';
 
 interface PredictionResult {
   probabilities: Record<string, number>;
@@ -45,12 +44,8 @@ export default function Home() {
     setError(null);
 
     try {
-      // 1. Upload to Supabase Storage (Optional for this demo, but good practice)
-      // const fileName = `${Date.now()}_${file.name}`;
-      // const { error: uploadError } = await supabase.storage
-      //   .from('xray-images')
-      //   .upload(fileName, file);
-      // if (uploadError) throw uploadError;
+      // 1. Upload to Supabase Storage (Future implementation)
+      // ...
 
       // 2. Call Inference API
       const formData = new FormData();
@@ -68,8 +63,8 @@ export default function Home() {
       const data = await response.json();
       setResult(data);
       
-      // 3. Log to Supabase Database (if user is authenticated)
-      // await supabase.from('inference_logs').insert([...])
+      // 3. Log to Supabase Database (Future implementation)
+      // ...
 
     } catch (err: any) {
       console.error(err);
@@ -90,10 +85,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Medical Image Analysis AI</h1>
-          <p className="text-gray-600">Upload a Chest X-ray to detect pathologies using DenseNet121 & Grad-CAM</p>
-        </header>
+        <Header />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Upload & Preview */}

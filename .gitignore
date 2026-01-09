@@ -56,3 +56,9 @@ ENV/
 
 # Docker
 .docker/
+
+# Project Management
+issue_*.md
+output.md
+processing.md
+
