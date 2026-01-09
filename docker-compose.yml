@@ -10,14 +10,28 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
 
-  frontend:
-    image: node:18-alpine
+  web:
+    image: node:22-alpine
     working_dir: /app
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
+      - ./web:/app
     tty: true
     environment:
       - WATCHPACK_POLLING=true
     command: npm run dev
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app/api
+      - ./src:/app/src
+      - ./outputs:/app/outputs
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_NAME=densenet121
