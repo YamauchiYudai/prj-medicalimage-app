@@ -17,6 +17,7 @@ services:
       - "3000:3000"
     volumes:
       - ./web:/app
+      - ./tests:/app/tests
     tty: true
     environment:
       - WATCHPACK_POLLING=true
@@ -32,6 +33,7 @@ services:
       - ./api:/app/api
       - ./src:/app/src
       - ./outputs:/app/outputs
+      - ./tests:/app/tests
     environment:
       - PYTHONPATH=/app
       - MODEL_NAME=densenet121
