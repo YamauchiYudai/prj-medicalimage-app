@@ -11,7 +11,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
 
   web:
-    image: node:22-alpine
+    build:
+      context: ./web
+      dockerfile: Dockerfile
     working_dir: /app/web
     ports:
       - "3000:3000"

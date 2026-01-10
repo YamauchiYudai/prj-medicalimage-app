@@ -18,16 +18,31 @@ class GradCAM:
         self.target_layer = target_layer
         self.gradients = None
         self.activations = None
+        self.handlers = []
         
-        # Hook registration
-        target_layer.register_forward_hook(self.save_activation)
-        target_layer.register_backward_hook(self.save_gradient)
+        # Register forward hook only
+        # We use the forward hook to capture activation and register a hook on the tensor for gradients
+        h = target_layer.register_forward_hook(self.forward_hook)
+        self.handlers.append(h)
 
-    def save_activation(self, module, input, output):
+    def forward_hook(self, module, input, output):
         self.activations = output
+        
+        # Register hook on the tensor to capture gradients
+        # This avoids the "inplace modification" error associated with register_full_backward_hook on modules
+        def tensor_hook(grad):
+            self.gradients = grad
+        
+        output.register_hook(tensor_hook)
+        
+        # Return a clone to prevent subsequent inplace operations (like ReLU(inplace=True))
+        # from modifying the captured activation `self.activations` and breaking autograd checks.
+        return output.clone()
 
-    def save_gradient(self, module, grad_input, grad_output):
-        self.gradients = grad_output[0]
+    def remove_hooks(self):
+        for h in self.handlers:
+            h.remove()
+        self.handlers = []
 
     def __call__(self, x, class_idx=None):
         # Forward pass
@@ -41,15 +56,22 @@ class GradCAM:
         score.backward()
         
         # Generate CAM
+        if self.gradients is None or self.activations is None:
+            # Fallback if hooks didn't fire (e.g. inference mode issue)
+            return np.zeros((x.shape[2], x.shape[3])), 0.0
+
         gradients = self.gradients[0]
         activations = self.activations[0]
         weights = torch.mean(gradients, dim=(1, 2), keepdim=True)
         cam = torch.sum(weights * activations, dim=0).detach().cpu().numpy()
         cam = np.maximum(cam, 0)
+        # Resize cam to image size
         cam = cv2.resize(cam, (x.shape[3], x.shape[2]))
         cam = cam - np.min(cam)
-        cam = cam / np.max(cam)
-        return cam, float(score)
+        cam_max = np.max(cam)
+        if cam_max > 0:
+            cam = cam / cam_max
+        return cam, score.item()
 
 def visualize_and_return_base64(model, tensor_img, original_img_np, target_layer):
     """
@@ -59,7 +81,10 @@ def visualize_and_return_base64(model, tensor_img, original_img_np, target_layer
     3. Returns base64 string instead of saving to file
     """
     grad_cam = GradCAM(model, target_layer)
-    mask, score = grad_cam(tensor_img)
+    try:
+        mask, score = grad_cam(tensor_img)
+    finally:
+        grad_cam.remove_hooks()
     
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
     heatmap = np.float32(heatmap) / 255
