@@ -12,12 +12,13 @@ services:
 
   web:
     image: node:22-alpine
-    working_dir: /app
+    working_dir: /app/web
     ports:
       - "3000:3000"
     volumes:
-      - ./web:/app
+      - ./web:/app/web
       - ./tests:/app/tests
+      - web_node_modules:/app/web/node_modules
     tty: true
     environment:
       - WATCHPACK_POLLING=true
@@ -37,3 +38,6 @@ services:
     environment:
       - PYTHONPATH=/app
       - MODEL_NAME=densenet121
+
+volumes:
+  web_node_modules:
