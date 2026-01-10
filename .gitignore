@@ -58,6 +58,7 @@ ENV/
 .docker/
 
 # Project Management
+GEMINI.md
 issue_*.md
 output.md
 processing.md
