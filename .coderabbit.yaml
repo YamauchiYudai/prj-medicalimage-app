@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "ja-JP"
+
+reviews:
+  auto_review:
+    # 自動レビューの有効化
+    enabled: true
+    # 増分レビュー（pushごとのレビュー）の有効化
+    auto_incremental_review: true
+    # レビューをスキップするPRタイトルのキーワード
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+      - "Draft"
+
+  # 特定のラベルを持つPRのみレビューする場合の設定（空の場合は全てレビュー）
+  # limit_reviews_by_label:
+  #   - "!skip-coderabbit"
+
+  # PRの概要要約の生成
+  high_level_summary: true
+
+  finishing_touches:
+    # ドキュメント（docstring）の自動生成
+    docstrings:
+      enabled: true
+    # ユニットテストの自動生成
+    unit_tests:
+      enabled: true
+
+  # 除外するファイルパターン
+  path_filters:
+    - "!outputs/**"
+    - "!**/*.lock"
+    - "!**/*.min.js"
+    - "!node_modules/**"
+    - "!__pycache__/**"
+
+  # 特定のファイルパスに対する追加指示
+  path_instructions:
+    - path: "api/**/*.py"
+      instructions: "FastAPIのベストプラクティスに従い、型ヒントを適切に使用してください。"
+    - path: "web/**/*.tsx"
+      instructions: "Next.js (App Router) と Tailwind CSS v4 の規約に従ってください。"
