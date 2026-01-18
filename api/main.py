@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import io
 from PIL import Image
+import pydicom
 import base64
 import os
 import sys
@@ -78,8 +79,25 @@ app.add_middleware(
 )
 
 def preprocess_image(image_bytes):
-    # Open image using PIL
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    try:
+        # Open image using PIL
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except Exception:
+        # Try DICOM
+        try:
+            ds = pydicom.dcmread(io.BytesIO(image_bytes))
+            img_array = ds.pixel_array
+            
+            # Simple normalization to 0-255 range
+            if img_array.max() > img_array.min():
+                img_array = (img_array - img_array.min()) / (img_array.max() - img_array.min()) * 255.0
+            
+            img_array = np.uint8(img_array)
+            image = Image.fromarray(img_array).convert("RGB")
+        except Exception:
+             # If both fail, raise 400
+            raise HTTPException(status_code=400, detail="Invalid image file. Please upload a valid image (JPEG, PNG) or DICOM file.")
+
     # Resize to 224x224 (standard for DenseNet/ResNet)
     image = image.resize((224, 224))
     img_np = np.array(image)

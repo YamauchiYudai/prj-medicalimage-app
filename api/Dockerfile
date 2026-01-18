@@ -19,7 +19,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     python-multipart \
     opencv-python-headless \
     matplotlib \
-    numpy
+    numpy \
+    pydicom
 
 # Copy the application code
 COPY api /app/api
